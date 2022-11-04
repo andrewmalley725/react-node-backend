@@ -13,7 +13,7 @@ const knex = require('knex')({
       host : '127.0.0.1',
       port : 3306,
       user : 'root',
-      password : '**********',
+      password : 'Andyman72599',
       database : 'SchoolSchedulingExample'
     }
 });
@@ -23,26 +23,25 @@ const port = 3001;
 app.use(cors())
 
 app.get('/search', (req, res) => {
-    let searchValue = req.query.value;
-    if (searchValue){
-        knex.select(knex.raw("concat(Subjects.CategoryID, ' ', Classes.ClassID) as Class_name"), 'Categories.CategoryDescription as Subject')
-                    .from('Classes')
-                    .innerJoin('Subjects', 'Subjects.SubjectID', '=', 'Classes.SubjectID')
-                    .innerJoin('Categories', 'Categories.CategoryID', '=', 'Subjects.CategoryID')
-                    .whereLike('Categories.CategoryDescription', '%' + searchValue + '%')
-                    .then(result => {
-            res.json({data: result});
-        });
-    }
-    else{
-        knex.select(knex.raw("concat(Subjects.CategoryID, ' ', Classes.ClassID) as Class_name"), 'Categories.CategoryDescription as Subject')
-                    .from('Classes')
-                    .innerJoin('Subjects', 'Subjects.SubjectID', '=', 'Classes.SubjectID')
-                    .innerJoin('Categories', 'Categories.CategoryID', '=', 'Subjects.CategoryID')
-                    .then(result => {
-            res.json({data: result});
-        });
-    }
+    let value = req.query.value;
+    if (value) 
+    knex.select(knex.raw('distinct s.subjectcode as Class_Code, s.subjectname as Class_Name'))
+                .from('subjects as s')
+                .innerJoin('categories as c', 'c.categoryid', '=', 's.categoryid')
+                .whereLike('c.categorydescription', '%' + value + '%')
+                .then(result => {
+        res.json({data: result});
+    });
+});
+
+app.get('/dropdown', (req, res) => {
+    let categories = [];
+    knex.select('CategoryDescription').from('Categories').then(result => {
+        for (let i of result){
+            categories.push(i['CategoryDescription']);
+        }
+        res.json({data: categories});
+    });
 });
 
 app.listen(port, () => console.log('Server is running...'));
