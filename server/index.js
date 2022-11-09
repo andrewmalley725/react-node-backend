@@ -1,7 +1,7 @@
 
 const express = require("express");
 
-const cors = require('cors')
+const cors = require('cors');
 
 let app = express(); 
 
@@ -20,7 +20,7 @@ const knex = require('knex')({
 
 const port = 3001;
 
-app.use(cors())
+app.use(cors());
 
 app.get('/classes', (req, res) => {
     let classes = [];
@@ -56,9 +56,12 @@ app.get('/info', (req, res) => {
     if (req.query.class){
         name = req.query.class.split('-')[1];
     }
-    knex.select('c.classid', 's.subjectname', 's.subjectcode').from('subjects as s')
+    knex.select('c.classid', 's.subjectcode as Course', 's.subjectname as Name', knex.raw('concat(stf.stflastname, ", ", stf.stffirstname) as Taught_by'))
+                 .from('subjects as s')
                  .innerJoin('classes as c', 'c.subjectid', '=', 's.subjectid')
-                 .whereLike('s.subjectname', '%' + name)
+                 .innerJoin('faculty_classes as fc', 'fc.classid', '=', 'c.classid')
+                 .innerJoin('staff as stf', 'stf.staffid', '=', 'fc.staffid')
+                 .whereLike('s.subjectname', name + '%')
                  .then(result =>{
         res.json({data: result});
     });
