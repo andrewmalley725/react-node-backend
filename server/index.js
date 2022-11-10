@@ -56,13 +56,7 @@ app.get('/info', (req, res) => {
     if (req.query.class){
         name = req.query.class.split('-')[1];
     }
-    knex.select('c.classid', 's.subjectcode as Course', 's.subjectname as Name', knex.raw('concat(stf.stflastname, ", ", stf.stffirstname) as Taught_by'))
-                 .from('subjects as s')
-                 .innerJoin('classes as c', 'c.subjectid', '=', 's.subjectid')
-                 .innerJoin('faculty_classes as fc', 'fc.classid', '=', 'c.classid')
-                 .innerJoin('staff as stf', 'stf.staffid', '=', 'fc.staffid')
-                 .whereLike('s.subjectname', name + '%')
-                 .then(result =>{
+    knex.select().from('classoverview').whereLike('Name', name + '%').then(result =>{
         res.json({data: result});
     });
 });
