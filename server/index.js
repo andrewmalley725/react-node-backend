@@ -13,7 +13,7 @@ const knex = require('knex')({
       host : '127.0.0.1',
       port : 3306,
       user : 'root',
-      password : '*********', // change before running server
+      password : '******', // change before running server
       database : 'SchoolSchedulingExample'
     }
 });
@@ -42,6 +42,7 @@ app.get('/classes', (req, res) => {
 });
 
 app.get('/dropdown', (req, res) => {
+    
     let categories = [];
     knex.select('CategoryDescription').from('Categories').then(result => {
         for (let i of result){
@@ -56,9 +57,55 @@ app.get('/info', (req, res) => {
     if (req.query.class){
         name = req.query.class.split('-')[1];
     }
-    knex.select().from('classoverview').whereLike('Name', name + '%').then(result =>{
+    knex.select('classid', 'Course', 'Name').from('classoverview').whereLike('Name', name + '%').then(result =>{
         res.json({data: result});
     });
 });
 
+app.get('/viewcourse', (req, res) => {
+    let data = [];
+    let classid = req.query.classid;
+    knex.select().from('classoverview as cl')
+                .innerJoin('classes as c', 'c.classid','=','cl.classid')
+                .where('c.classid',classid)
+                .then(result => {
+                                for (let i of result){
+                                    let weekSched = '';
+                                    let days = 0;
+                                    if (i['MondaySchedule'][0] == 1){
+                                        weekSched += ('M');
+                                        days += 1;
+                                    }
+                                    if (i['TuesdaySchedule'][0] == 1){
+                                        weekSched += ('T');
+                                        days += 1;
+                                    }
+                                    if (i['WednesdaySchedule'][0] == 1){
+                                        weekSched += ('W');
+                                        days += 1;
+                                    }
+                                    if (i['ThursdaySchedule'][0] == 1){
+                                        weekSched += ('TH');
+                                        days += 1;
+                                    } 
+                                    if (i['FridaySchedule'][0] == 1){
+                                        weekSched += ('F');
+                                        days += 1;
+                                    }
+                                    if (i['SaturdaySchedule'][0] == 1){
+                                        weekSched += ('SAT');
+                                        days += 1;
+                                    }
+                                    data.push({
+                                        course:i['Course'],
+                                        taughtBy:i['Taught_by'],
+                                        schedule:weekSched,
+                                        time:parseInt(i['StartTime']) - 12
+                                    });
+                                }
+        res.json({'data':data})
+    })
+});
+
 app.listen(port, () => console.log('Server is running...'));
+
