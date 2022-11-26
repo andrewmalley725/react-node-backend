@@ -7,13 +7,15 @@ let app = express();
 
 var path = require("path");
 
+app.use(express.urlencoded());
+
 const knex = require('knex')({
     client: 'mysql',
     connection: {
       host : '127.0.0.1',
       port : 3306,
       user : 'root',
-      password : '******', // change before running server
+      password : 'Andyman72599', // change before running server
       database : 'SchoolSchedulingExample'
     }
 });
@@ -28,6 +30,7 @@ app.get('/classes', (req, res) => {
     if (req.query.value){
         value = req.query.value;
     }
+    console.log(value);
     knex.select(knex.raw('distinct s.subjectcode as Class_Code, s.subjectname as Class_Name'))
                 .from('subjects as s')
                 .innerJoin('categories as c', 'c.categoryid', '=', 's.categoryid')
@@ -41,6 +44,21 @@ app.get('/classes', (req, res) => {
   
 });
 
+app.get('/semesters', (req,res) => {
+    let semesters = [];
+    knex.select(knex.raw('distinct semesternumber')).from('classes').then(result => {
+        for (let i of result){
+            if (i['semesternumber'] == 1){
+                semesters.push('Fall');
+            }
+            else{
+                semesters.push('Winter');
+            }
+        }
+        res.json(semesters);
+    });
+});
+
 app.get('/dropdown', (req, res) => {
     
     let categories = [];
@@ -52,12 +70,14 @@ app.get('/dropdown', (req, res) => {
     });
 });
 
-app.get('/info', (req, res) => {
-    let name = '';
-    if (req.query.class){
-        name = req.query.class.split('-')[1];
-    }
-    knex.select('classid', 'Course', 'Name').from('classoverview').whereLike('Name', name + '%').then(result =>{
+app.get('/info/:sel/:sem', (req, res) => {
+    let name = req.params.sel.split('-')[1];
+    let sem = req.params.sem;
+    knex.select('cl.classid', 'Course', 'Name').from('classoverview as cl')
+                                            .innerJoin('classes as c', 'c.classid', '=', 'cl.classid')
+                                            .where('semesternumber', sem)
+                                            .andWhereLike('Name', name + '%')
+                                            .then(result =>{
         res.json({data: result});
     });
 });
@@ -97,10 +117,11 @@ app.get('/viewcourse', (req, res) => {
                                         days += 1;
                                     }
                                     data.push({
-                                        course:i['Course'],
+                                        course:i['Course'] + ' - ' + i['Name'],
+                                        semester:i['SemesterNumber'] == 1 ? 'Fall' : 'Winter',
                                         taughtBy:i['Taught_by'],
                                         schedule:weekSched,
-                                        time:parseInt(i['StartTime']) - 12
+                                        time:i['StartTime']
                                     });
                                 }
         res.json({'data':data})
