@@ -3,6 +3,8 @@ const express = require("express");
 
 const cors = require('cors');
 
+const funcs = require('./funcs');
+
 let app = express(); 
 
 var path = require("path");
@@ -15,7 +17,7 @@ const knex = require('knex')({
       host : '127.0.0.1',
       port : 3306,
       user : 'root',
-      password : '#######', // change before running server
+      password : 'Andyman72599', // change before running server
       database : 'SchoolSchedulingExample'
     }
 });
@@ -30,7 +32,6 @@ app.get('/classes', (req, res) => {
     if (req.query.value){
         value = req.query.value;
     }
-    console.log(value);
     knex.select(knex.raw('distinct s.subjectcode as Class_Code, s.subjectname as Class_Name'))
                 .from('subjects as s')
                 .innerJoin('categories as c', 'c.categoryid', '=', 's.categoryid')
@@ -76,7 +77,7 @@ app.get('/info/:sel/:sem', (req, res) => {
     knex.select('cl.classid', 'Course', 'Name').from('classoverview as cl')
                                             .innerJoin('classes as c', 'c.classid', '=', 'cl.classid')
                                             .where('semesternumber', sem)
-                                            .andWhereLike('Name', name + '%')
+                                            .andWhere('Name', name)
                                             .then(result =>{
         res.json({data: result});
     });
@@ -121,7 +122,8 @@ app.get('/viewcourse', (req, res) => {
                                         semester:i['SemesterNumber'] == 1 ? 'Fall' : 'Winter',
                                         taughtBy:i['Taught_by'],
                                         schedule:weekSched,
-                                        time:i['StartTime']
+                                        time:funcs.getTime(i['StartTime'], i['Duration']),
+                                        duration:i['Duration'],
                                     });
                                 }
         res.json({'data':data})
