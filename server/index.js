@@ -90,42 +90,41 @@ app.get('/viewcourse', (req, res) => {
                 .innerJoin('classes as c', 'c.classid','=','cl.classid')
                 .where('c.classid',classid)
                 .then(result => {
-                                for (let i of result){
-                                    let weekSched = '';
-                                    let days = 0;
-                                    if (i['MondaySchedule'][0] == 1){
-                                        weekSched += ('M');
-                                        days += 1;
-                                    }
-                                    if (i['TuesdaySchedule'][0] == 1){
-                                        weekSched += ('T');
-                                        days += 1;
-                                    }
-                                    if (i['WednesdaySchedule'][0] == 1){
-                                        weekSched += ('W');
-                                        days += 1;
-                                    }
-                                    if (i['ThursdaySchedule'][0] == 1){
-                                        weekSched += ('TH');
-                                        days += 1;
-                                    } 
-                                    if (i['FridaySchedule'][0] == 1){
-                                        weekSched += ('F');
-                                        days += 1;
-                                    }
-                                    if (i['SaturdaySchedule'][0] == 1){
-                                        weekSched += ('SAT');
-                                        days += 1;
-                                    }
-                                    data.push({
-                                        course:i['Course'] + ' - ' + i['Name'],
-                                        semester:i['SemesterNumber'] == 1 ? 'Fall' : 'Winter',
-                                        taughtBy:i['Taught_by'],
-                                        schedule:weekSched,
-                                        time:funcs.getTime(i['StartTime'], i['Duration']),
-                                        duration:i['Duration'],
-                                    });
-                                }
+                for (let i of result){
+                    let weekSched = '';
+                    let days = 0;
+                    if (i['MondaySchedule'][0] == 1){
+                        weekSched += ('M');
+                        days += 1;
+                    }
+                    if (i['TuesdaySchedule'][0] == 1){
+                        weekSched += ('T');
+                        days += 1;
+                    }
+                    if (i['WednesdaySchedule'][0] == 1){
+                        weekSched += ('W');
+                        days += 1;
+                    }
+                    if (i['ThursdaySchedule'][0] == 1){
+                        weekSched += ('TH');
+                        days += 1;
+                    } 
+                    if (i['FridaySchedule'][0] == 1){
+                        weekSched += ('F');
+                        days += 1;
+                    }
+                    if (i['SaturdaySchedule'][0] == 1){
+                        weekSched += ('SAT');
+                        days += 1;
+                    }
+                    data.push({
+                        course:i['Course'] + ' - ' + i['Name'],
+                        semester:i['SemesterNumber'] == 1 ? 'Fall' : 'Winter',
+                        taughtBy:i['Taught_by'],
+                        schedule:weekSched,
+                        time:funcs.getTime(i['StartTime'], i['Duration'])
+                    });
+                }
         res.json({'data':data})
     })
 });
